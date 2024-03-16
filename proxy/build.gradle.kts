@@ -120,7 +120,8 @@ dependencies {
     implementation(libs.netty.transport.native.kqueue)
     implementation(variantOf(libs.netty.transport.native.kqueue) { classifier("osx-x86_64") })
     implementation(variantOf(libs.netty.transport.native.kqueue) { classifier("osx-aarch_64") })
-
+    compileOnly("pro.gravit.launcher:launcher-core:5.5.4")
+    compileOnly("pro.gravit.launcher:launcher-ws-api:5.5.4")
     implementation(libs.jopt)
     implementation(libs.terminalconsoleappender)
     runtimeOnly(libs.jline)
