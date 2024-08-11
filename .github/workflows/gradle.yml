@@ -20,3 +20,8 @@ jobs:
         cache: 'gradle'
     - name: Build with Gradle
       run: ./gradlew assemble
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: Velocity-Proxy
+        path: proxy/build/libs/velocity-proxy-**-SNAPSHOT-all.jar
