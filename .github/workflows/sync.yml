@@ -1,0 +1,63 @@
+name: Sync branches
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  sync-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync branches
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Step Remote Add"
+          git remote add upstream https://github.com/PaperMC/Velocity.git
+          echo "Step 0"
+          git fetch upstream
+
+          for branch in gravitlauncher-5.5 gravitlauncher-5.6; do
+            echo "Processing branch: $branch"
+            
+            echo "Step 1: Checkout branch"
+            git checkout $branch || git checkout -b $branch
+            
+            echo "Step 2: Check for unstaged changes"
+            if [[ -n $(git status -s) ]]; then
+              echo "Unstaged changes found. Stashing them."
+              git stash
+            fi
+            
+            echo "Step 3: Rebase"
+            if git rebase upstream/dev/3.0.0; then
+              echo "Rebase successful"
+            else
+              echo "Rebase failed. Aborting rebase."
+              git rebase --abort
+              if [[ -n $(git stash list) ]]; then
+                echo "Applying stashed changes"
+                git stash pop
+              fi
+              echo "Rebase failed for $branch. Manual intervention required."
+              continue
+            fi
+            
+            echo "Step 4: Push changes"
+            if git push origin $branch --force; then
+              echo "Push successful"
+            else
+              echo "Push failed for $branch"
+            fi
+            
+            if [[ -n $(git stash list) ]]; then
+              echo "Applying stashed changes"
+              git stash pop
+            fi
+          done
